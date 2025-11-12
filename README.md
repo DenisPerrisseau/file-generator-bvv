@@ -1,224 +1,197 @@
-# File Generator BVV
+# 🎯 Générateur de Fichiers JSON
 
-## 📋 Description
+Un **système simple et efficace** pour générer des fichiers JSON d'équipements avec erreurs et doublons.
 
-Application Spring Boot pour générer des fichiers à partir de gabarits avec support pour JSON, XML et TXT. Permet d'importer des fichiers exemple, générer automatiquement des gabarits, créer des fichiers de données valides ou avec erreurs, et envoyer les fichiers via HTTP POST sécurisé avec token HMAC-SHA256.
-
-## 🛠️ Technologies
-
-- **Java 21** - Langage de programmation
-- **Spring Boot 3.3.0** - Framework web
-- **Spring Data JPA** - ORM et accès aux données
-- **PostgreSQL** - Base de données
-- **Liquibase** - Gestion des migrations de schéma
-- **Lombok** - Réduction de code boilerplate
-- **Thymeleaf** - Moteur de templates web
-- **Jackson** - Sérialisation JSON et XML
-- **Maven** - Gestionnaire de dépendances
-
-## 📁 Structure du projet
-
-```
-src/main/java/com/bvv/filegeneration/
-├── controller/              # Contrôleurs REST
-│   ├── TemplateController.java
-│   ├── GenerationJobController.java
-│   └── GenerationLogController.java
-├── service/                 # Logique métier
-│   ├── TemplateService.java
-│   ├── GenerationJobService.java
-│   └── GenerationLogService.java
-├── repository/              # Accès aux données (JPA)
-│   ├── TemplateRepository.java
-│   ├── GenerationJobRepository.java
-│   ├── GenerationLogRepository.java
-│   └── TemplateFieldRepository.java
-├── entity/                  # Entités JPA
-│   ├── Template.java
-│   ├── TemplateField.java
-│   ├── GenerationJob.java
-│   └── GenerationLog.java
-├── dto/                     # Data Transfer Objects
-│   ├── TemplateDTO.java
-│   ├── FieldDTO.java
-│   ├── GenerationJobDTO.java
-│   ├── GenerationLogDTO.java
-│   └── ...
-├── mapper/                  # Mappers DTO ↔ Entity
-│   ├── TemplateMapper.java
-│   ├── FieldMapper.java
-│   ├── GenerationJobMapper.java
-│   └── GenerationLogMapper.java
-├── utils/                   # Utilitaires
-│   ├── TemplateNamingRules.java
-│   ├── HmacTokenGenerator.java
-│   └── FileParser.java
-├── common/
-│   ├── enums/              # Énumérations
-│   ├── constants/          # Constantes globales
-│   └── exceptions/         # Exceptions personnalisées
-└── FileGeneratorApplication.java
-```
-
-## 🚀 Démarrage rapide
+## 🚀 Démarrage Rapide
 
 ### Prérequis
-
 - Java 21+
 - Maven 3.8+
-- PostgreSQL 12+
 
-### Installation
+### Lancer l'Application
 
-1. **Cloner le projet**
+**Option 1: Avec Maven (Windows/Linux/Mac)**
 ```bash
-git clone <repo-url>
-cd GenerateFileBVV
-```
-
-2. **Configurer PostgreSQL**
-```sql
-CREATE DATABASE filegeneration_db;
-```
-
-3. **Modifier application.yml**
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/filegeneration_db
-    username: votre_utilisateur
-    password: votre_mot_de_passe
-```
-
-4. **Compiler et lancer**
-```bash
-mvn clean install
 mvn spring-boot:run
 ```
 
-L'application démarre sur `http://localhost:8080`
-
-## 🔌 Endpoints REST
-
-### Templates
-| Méthode | URL | Description |
-|---------|-----|-------------|
-| POST | `/api/templates/import` | Importer un fichier et générer un gabarit |
-| GET | `/api/templates` | Lister tous les gabarits |
-| GET | `/api/templates/{id}` | Détail d'un gabarit |
-| PUT | `/api/templates/{id}` | Mettre à jour un gabarit |
-| DELETE | `/api/templates/{id}` | Supprimer un gabarit |
-
-### Tâches de génération
-| Méthode | URL | Description |
-|---------|-----|-------------|
-| POST | `/api/jobs/generate` | Créer une tâche de génération |
-| GET | `/api/jobs` | Lister toutes les tâches |
-| GET | `/api/jobs/{id}` | Statut d'une tâche |
-| GET | `/api/jobs/{id}/preview` | Aperçu des premières lignes |
-| POST | `/api/jobs/{id}/send` | Envoyer via HTTP POST avec HMAC-SHA256 |
-
-### Historique
-| Méthode | URL | Description |
-|---------|-----|-------------|
-| GET | `/api/logs` | Tous les logs |
-| GET | `/api/logs/job/{jobId}` | Logs d'une tâche |
-
-## 💡 Exemples d'utilisation
-
-### 1. Générer un fichier JSON
-
-**Request:**
+**Option 2: Avec le script (Windows)**
 ```bash
-curl -X POST http://localhost:8080/api/jobs/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "templateId": 1,
-    "totalLines": 100,
-    "errorLines": 5,
-    "outputFormat": "JSON"
-  }'
+./start.bat
 ```
 
-**Response:**
+**Option 3: Jar pré-compilé**
+```bash
+java -jar target/file-generation-1.0.0.jar
+```
+
+### Accéder à l'Interface
+```
+http://localhost:8080/
+```
+
+## 📋 Fonctionnalités
+
+### 1. Génération Configurables
+- **Nombre de lignes** : De 1 à N
+- **Lignes avec erreurs** : De 0 à N
+- **Doublons** : De 0 à N
+
+### 2. Types d'Erreurs (9 types)
+- ☑ Valeur NULL
+- ☑ Chaîne Vide
+- ☑ Date Invalide
+- ☑ Hors Limites
+- ☑ Type Incorrect
+- ☑ Trop Long
+- ☑ Trop Court
+- ☑ Format Invalide
+- ☑ Champ Manquant
+
+### 3. Actions
+- 👁️ **Prévisualiser** - Voir le résultat avant téléchargement
+- ⬇️ **Télécharger** - Télécharger le fichier JSON
+
+## 📊 Exemple d'Utilisation
+
+### Configuration
+```
+Total lignes: 10
+Lignes avec erreurs: 2
+Doublons: 1
+Types d'erreurs: [Date Invalide, Champ Vide]
+```
+
+### Résultat
 ```json
 {
-  "id": 1,
-  "templateId": 1,
-  "totalLines": 100,
-  "errorLines": 5,
-  "outputFormat": "JSON",
-  "status": "PENDING",
-  "createdAt": "2025-11-12T10:30:00"
+  "equipments": [
+    { "name": "DVIFRPNO171", "file": "B804001085", "deployDateTime": "2025-12-12T13:34:00.000Z" },
+    { "name": "DVIFRPNO241", "file": "B804001086", "deployDateTime": "2025-13-32T13:35:00.000Z" },
+    ... (8 lignes supplémentaires)
+    { "name": "DVIFRPNO171", "file": "B804001085", "deployDateTime": "2025-12-12T13:34:00.000Z" }  // Doublon
+  ]
 }
 ```
 
-### 2. Envoyer un fichier via HTTP POST
+## 🏗️ Architecture
 
+### Backend
+- **Contrôleur**: `GeneratorController.java`
+  - `GET /` - Interface
+  - `POST /api/generate` - Générer (prévisualisation)
+  - `POST /api/download` - Télécharger
+
+- **Service**: `JsonFileGeneratorService.java`
+  - Génération des équipements valides
+  - Injection des erreurs
+  - Création des doublons
+
+### Frontend
+- **Interface**: `index.html` (Bootstrap 5)
+  - Formulaire de configuration
+  - Cases à cocher pour les erreurs
+  - Prévisualisation du JSON
+  - Boutons de téléchargement
+
+## 📁 Structure du Projet
+
+```
+GenerateFileBVV/
+├── src/main/
+│   ├── java/com/bvv/filegeneration/
+│   │   ├── controller/
+│   │   │   └── GeneratorController.java
+│   │   └── service/
+│   │       └── JsonFileGeneratorService.java
+│   └── resources/
+│       ├── templates/
+│       │   └── index.html
+│       └── application.yml
+├── pom.xml
+├── start.bat (Windows)
+└── NOUVEAU_SYSTEME.md
+```
+
+## 🛠️ Configuration
+
+Fichier: `src/main/resources/application.yml`
+
+```yaml
+spring:
+  application:
+    name: file-generator
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.bvv.filegeneration: DEBUG
+```
+
+## 🧪 Tests Manuels
+
+### Test 1: Fichier Valide
+1. Total: 10
+2. Erreurs: 0
+3. Doublons: 0
+4. Aucune erreur cochée
+5. Cliquer "Prévisualiser"
+
+**Résultat attendu**: 10 lignes valides
+
+### Test 2: Avec Erreurs
+1. Total: 20
+2. Erreurs: 5
+3. Doublons: 2
+4. Cocher "Date Invalide" et "Champ Vide"
+5. Cliquer "Télécharger"
+
+**Résultat attendu**: 15 lignes valides + 5 avec erreurs + 2 doublons = 22 lignes
+
+### Test 3: Tous les Types d'Erreurs
+1. Total: 30
+2. Erreurs: 10
+3. Doublons: 5
+4. Cocher tous les types d'erreurs
+5. Cliquer "Prévisualiser"
+
+**Résultat attendu**: Mix de différents types d'erreurs
+
+## 🐛 Dépannage
+
+### "Maven command not found"
+Installer Maven ou l'ajouter au PATH système.
+
+### Port 8080 déjà utilisé
+Changer le port dans `application.yml`:
+```yaml
+server:
+  port: 9090
+```
+
+### Erreur lors de la compilation
 ```bash
-curl -X POST http://localhost:8080/api/jobs/1/send \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://api.example.com/upload",
-    "secret": "your-secret-key"
-  }'
+# Nettoyer et recompiler
+mvn clean install
 ```
 
-## 🔐 Sécurité - Token HMAC-SHA256
+## 📝 Notes Techniques
 
-L'application utilise HMAC-SHA256 pour signer les requêtes HTTP :
+- **Framework**: Spring Boot 3.3.0
+- **Language**: Java 21
+- **Template Engine**: Thymeleaf
+- **Frontend**: Bootstrap 5 + Vanilla JavaScript
+- **JSON Processing**: Jackson
 
-```java
-String token = HmacTokenGenerator.generateToken(secret, payload);
-// Résultat: "Bearer <token_base64>"
-```
+## 📞 Support
 
-## 📝 Nomenclature des fichiers
+Pour toute question ou problème, consultez le fichier `NOUVEAU_SYSTEME.md`.
 
-Format standardisé : `PREFIX_TYPE_yyyyMMdd_vN.json`
+---
 
-Exemples :
-- `CLIENTS_JSON_20251112_v1.json` - Gabarit de clients en JSON
-- `INVOICES_XML_20251112_v1.json` - Gabarit de factures en XML
-
-## 🗄️ Base de données
-
-La structure est gérée par **Liquibase** via `/src/main/resources/db/changelog/`.
-
-**Tables principales:**
-- `templates` - Définition des gabarits
-- `template_fields` - Champs de chaque gabarit
-- `generation_jobs` - Tâches de génération
-- `generation_logs` - Historique des exécutions
-
-## 📌 À implémenter
-
-- [ ] Endpoint `/api/templates/import` - Import de fichiers
-- [ ] Génération de fichiers JSON avec injection d'erreurs
-- [ ] Génération de fichiers XML
-- [ ] Génération de fichiers TXT
-- [ ] Endpoint `/api/jobs/{id}/preview`
-- [ ] Endpoint `/api/jobs/{id}/send` avec HTTP POST sécurisé
-- [ ] Interface Thymeleaf
-- [ ] Validateurs personnalisés
-- [ ] Global Exception Handler
-
-## 🧪 Tests
-
-```bash
-mvn test
-```
-
-## 📚 Documentation supplémentaire
-
-- **Architecture:** Consulter `ARCHITECTURE.md`
-- **API Specification:** Consulter `API_SPEC.md`
-
-## 👨‍💻 Auteur
-
-BVV Team
-
-## 📄 Licence
-
-Apache License 2.0
+**Générateur de Fichiers JSON v1.0.0** ✨
 
