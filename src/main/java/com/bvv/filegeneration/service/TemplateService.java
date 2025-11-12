@@ -103,5 +103,13 @@ public class TemplateService {
                 .orElseThrow(() -> new TemplateNotFoundException("Template not found with id: " + id));
         templateRepository.delete(template);
     }
+
+    /**
+     * Récupère l'entité Template par ID (pour usage interne)
+     */
+    public Template getTemplateEntityById(Long id) {
+        return templateRepository.findById(id)
+                .orElseThrow(() -> new TemplateNotFoundException("Template not found with id: " + id));
+    }
 }
 

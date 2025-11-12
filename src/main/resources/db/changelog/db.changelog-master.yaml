@@ -331,3 +331,74 @@ databaseChangeLog:
                   name: description
                   value: "Environnement de production"
 
+  - changeSet:
+      id: 9-add-bearer-token-to-target-urls
+      author: system
+      changes:
+        - addColumn:
+            tableName: target_urls
+            columns:
+              - column:
+                  name: bearer_token
+                  type: VARCHAR(1000)
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+  - changeSet:
+      id: 10-add-test-comparison-fields-to-jobs
+      author: system
+      changes:
+        - addColumn:
+            tableName: generation_jobs
+            columns:
+              - column:
+                  name: target_url_id
+                  type: BIGINT
+              - column:
+                  name: expected_lines_treated
+                  type: INT
+              - column:
+                  name: expected_lines_insert
+                  type: INT
+              - column:
+                  name: expected_lines_update
+                  type: INT
+              - column:
+                  name: expected_lines_ignored
+                  type: INT
+              - column:
+                  name: expected_http_status
+                  type: INT
+        - addForeignKeyConstraint:
+            baseTableName: generation_jobs
+            baseColumnNames: target_url_id
+            constraintName: fk_job_target_url
+            referencedTableName: target_urls
+            referencedColumnNames: id
+            onDelete: SET NULL
+
+  - changeSet:
+      id: 11-add-response-fields-to-logs
+      author: system
+      changes:
+        - addColumn:
+            tableName: generation_logs
+            columns:
+              - column:
+                  name: actual_lines_treated
+                  type: INT
+              - column:
+                  name: actual_lines_insert
+                  type: INT
+              - column:
+                  name: actual_lines_update
+                  type: INT
+              - column:
+                  name: actual_lines_ignored
+                  type: INT
+              - column:
+                  name: response_status
+                  type: VARCHAR(20)
+

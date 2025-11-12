@@ -32,13 +32,16 @@ public class FileGenerationService {
 
     private final GenerationJobRepository jobRepository;
     private final TemplateRepository templateRepository;
+    private final ErrorInjectionService errorInjectionService;
     private final ObjectMapper objectMapper;
     private final Random random = new Random();
 
     public FileGenerationService(GenerationJobRepository jobRepository,
-                                TemplateRepository templateRepository) {
+                                TemplateRepository templateRepository,
+                                ErrorInjectionService errorInjectionService) {
         this.jobRepository = jobRepository;
         this.templateRepository = templateRepository;
+        this.errorInjectionService = errorInjectionService;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
@@ -115,28 +118,71 @@ public class FileGenerationService {
     }
 
     /**
-     * Génère les enregistrements de données
+     * Génère le contenu du fichier avec toutes les options (doublons, types d'erreurs)
      */
-    private List<Map<String, Object>> generateRecords(Template template, int totalLines, int errorLines) {
+    public String generateContentWithOptions(Template template, int totalLines, int errorLines,
+                                             int duplicateLines, String selectedErrorTypes,
+                                             OutputFormat format) {
+        Set<com.bvv.filegeneration.common.enums.ErrorType> errorTypes =
+            errorInjectionService.parseErrorTypes(selectedErrorTypes);
+
+        List<Map<String, Object>> records = generateRecords(template, totalLines, errorLines,
+                                                            duplicateLines, errorTypes);
+
+        switch (format) {
+            case JSON:
+                return generateJson(records);
+            case XML:
+                return generateXml(records, template);
+            case TXT:
+                return generateTxt(records, template);
+            default:
+                throw new FileGenerationException("Format non supporté: " + format);
+        }
+    }
+
+    /**
+     * Génère les enregistrements de données avec support des types d'erreurs et doublons
+     */
+    private List<Map<String, Object>> generateRecords(Template template, int totalLines, int errorLines,
+                                                      int duplicateLines, Set<com.bvv.filegeneration.common.enums.ErrorType> errorTypes) {
         List<Map<String, Object>> records = new ArrayList<>();
         List<TemplateField> fields = new ArrayList<>(template.getFields());
         fields.sort(Comparator.comparing(TemplateField::getPosition));
 
         // Déterminer quelles lignes auront des erreurs (distribution aléatoire)
         Set<Integer> errorLineIndexes = new HashSet<>();
-        while (errorLineIndexes.size() < errorLines) {
+        while (errorLineIndexes.size() < errorLines && errorLineIndexes.size() < totalLines) {
             errorLineIndexes.add(random.nextInt(totalLines));
         }
 
+        // Générer les lignes
         for (int i = 0; i < totalLines; i++) {
             boolean shouldHaveError = errorLineIndexes.contains(i);
             Map<String, Object> record = shouldHaveError
-                    ? generateErrorRecord(fields)
+                    ? generateErrorRecord(fields, errorTypes)
                     : generateValidRecord(fields);
             records.add(record);
         }
 
+        // Ajouter des doublons si demandé
+        if (duplicateLines > 0 && !records.isEmpty()) {
+            for (int i = 0; i < duplicateLines; i++) {
+                // Dupliquer une ligne aléatoire existante
+                int indexToDuplicate = random.nextInt(records.size());
+                Map<String, Object> duplicateRecord = new LinkedHashMap<>(records.get(indexToDuplicate));
+                records.add(duplicateRecord);
+            }
+        }
+
         return records;
+    }
+
+    /**
+     * Version simplifiée pour compatibilité
+     */
+    private List<Map<String, Object>> generateRecords(Template template, int totalLines, int errorLines) {
+        return generateRecords(template, totalLines, errorLines, 0, new HashSet<>());
     }
 
     /**
@@ -146,7 +192,7 @@ public class FileGenerationService {
         Map<String, Object> record = new LinkedHashMap<>();
 
         for (TemplateField field : fields) {
-            Object value = generateValidValue(field);
+            Object value = errorInjectionService.generateValidValue(field);
             record.put(field.getFieldName(), value);
         }
 
@@ -154,9 +200,10 @@ public class FileGenerationService {
     }
 
     /**
-     * Génère un enregistrement avec erreur
+     * Génère un enregistrement avec erreur en utilisant les types d'erreurs configurés
      */
-    private Map<String, Object> generateErrorRecord(List<TemplateField> fields) {
+    private Map<String, Object> generateErrorRecord(List<TemplateField> fields,
+                                                    Set<com.bvv.filegeneration.common.enums.ErrorType> errorTypes) {
         Map<String, Object> record = new LinkedHashMap<>();
 
         // Choisir aléatoirement 1 ou 2 champs qui auront des erreurs
@@ -168,13 +215,26 @@ public class FileGenerationService {
 
         for (int i = 0; i < fields.size(); i++) {
             TemplateField field = fields.get(i);
-            Object value = errorFieldIndexes.contains(i)
-                    ? generateErrorValue(field)
-                    : generateValidValue(field);
-            record.put(field.getFieldName(), value);
+            if (errorFieldIndexes.contains(i)) {
+                // Utiliser un type d'erreur configuré
+                com.bvv.filegeneration.common.enums.ErrorType errorType =
+                    errorInjectionService.selectRandomErrorType(errorTypes);
+                Object value = errorInjectionService.generateValueWithError(field, errorType);
+                record.put(field.getFieldName(), value);
+            } else {
+                Object value = errorInjectionService.generateValidValue(field);
+                record.put(field.getFieldName(), value);
+            }
         }
 
         return record;
+    }
+
+    /**
+     * Version simplifiée pour compatibilité
+     */
+    private Map<String, Object> generateErrorRecord(List<TemplateField> fields) {
+        return generateErrorRecord(fields, new HashSet<>());
     }
 
     /**

@@ -198,5 +198,25 @@ public class WebController {
         model.addAttribute("currentUri", request.getRequestURI());
         return "logs-history";
     }
+
+    /**
+     * Page de tests automatisés
+     */
+    @GetMapping("/auto-test")
+    public String autoTest(Model model, HttpServletRequest request) {
+        model.addAttribute("pageTitle", "Tests Automatisés");
+        model.addAttribute("currentUri", request.getRequestURI());
+        return "auto-test";
+    }
+
+    /**
+     * Page de gestion des URLs cibles
+     */
+    @GetMapping("/target-urls")
+    public String targetUrls(Model model, HttpServletRequest request) {
+        model.addAttribute("pageTitle", "URLs de Destination");
+        model.addAttribute("currentUri", request.getRequestURI());
+        return "target-urls";
+    }
 }
 

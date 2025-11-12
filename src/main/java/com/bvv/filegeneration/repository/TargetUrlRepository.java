@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface TargetUrlRepository extends JpaRepository<TargetUrl, Long> {
-
+    List<TargetUrl> findByActiveTrue();
     List<TargetUrl> findAllByOrderByNameAsc();
 }
 

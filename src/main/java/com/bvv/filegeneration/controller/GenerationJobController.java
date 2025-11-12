@@ -89,5 +89,30 @@ public class GenerationJobController {
         GenerationJobDTO job = jobService.getJobById(id);
         return ResponseEntity.ok(job);
     }
+
+    /**
+     * POST /api/jobs/{id}/execute - Exécuter une tâche PENDING immédiatement
+     */
+    @PostMapping("/{id}/execute")
+    public ResponseEntity<String> executeJob(@PathVariable Long id) {
+        try {
+            jobService.executeJob(id);
+            return ResponseEntity.ok("Tâche exécutée avec succès");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de l'exécution: " + e.getMessage());
+        }
+    }
+
+    /**
+     * GET /api/jobs/pending - Récupérer les jobs en attente
+     */
+    @GetMapping("/pending")
+    public ResponseEntity<List<GenerationJobDTO>> getPendingJobs() {
+        List<GenerationJobDTO> jobs = jobService.getPendingJobs();
+        return ResponseEntity.ok(jobs);
+    }
 }
 

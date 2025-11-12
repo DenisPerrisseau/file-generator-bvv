@@ -134,5 +134,64 @@ public class GenerationJobService {
         GenerationJob updated = jobRepository.save(job);
         return jobMapper.toDTO(updated);
     }
+
+    /**
+     * Crée un job depuis un DTO (avec toutes les options)
+     */
+    public GenerationJobDTO createJob(com.bvv.filegeneration.dto.GenerateFileRequestDTO request) {
+        Template template = templateRepository.findById(request.getTemplateId())
+                .orElseThrow(() -> new TemplateNotFoundException("Template not found with id: " + request.getTemplateId()));
+
+        GenerationJob job = GenerationJob.builder()
+                .template(template)
+                .totalLines(request.getTotalLines())
+                .errorLines(request.getErrorLines())
+                .duplicateLines(request.getDuplicateLines() != null ? request.getDuplicateLines() : 0)
+                .selectedErrorTypes(request.getSelectedErrorTypes())
+                .outputFormat(request.getOutputFormat())
+                .expectedLinesTreated(request.getExpectedLinesTreated())
+                .expectedLinesInsert(request.getExpectedLinesInsert())
+                .expectedLinesUpdate(request.getExpectedLinesUpdate())
+                .expectedLinesIgnored(request.getExpectedLinesIgnored())
+                .expectedHttpStatus(request.getExpectedHttpStatus())
+                .build();
+
+        if (request.getTargetUrlId() != null) {
+            // La relation sera gérée par JPA
+            job.setTargetUrl(null); // Sera set par le service appelant si nécessaire
+        }
+
+        GenerationJob saved = jobRepository.save(job);
+        return jobMapper.toDTO(saved);
+    }
+
+    /**
+     * Récupère l'entité Job par ID (pour usage interne)
+     */
+    public GenerationJob getJobEntity(Long id) {
+        return jobRepository.findById(id)
+                .orElseThrow(() -> new JobNotFoundException("Job not found with id: " + id));
+    }
+
+    /**
+     * Récupère les jobs en attente (PENDING)
+     */
+    public List<GenerationJobDTO> getPendingJobs() {
+        return getJobsByStatus(JobStatus.PENDING);
+    }
+
+    /**
+     * Exécute un job PENDING
+     */
+    public void executeJob(Long jobId) {
+        GenerationJob job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new JobNotFoundException("Job not found with id: " + jobId));
+
+        if (job.getStatus() != JobStatus.PENDING) {
+            throw new IllegalStateException("Job " + jobId + " n'est pas en statut PENDING");
+        }
+
+        fileGenerationService.generateFileForJob(jobId);
+    }
 }
 

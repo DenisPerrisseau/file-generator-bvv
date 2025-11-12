@@ -36,7 +36,7 @@ public class GenerationJob {
     private Integer duplicateLines;
 
     @Column(name = "selected_error_types", length = 500)
-    private String selectedErrorTypes; // Stocké comme String séparé par virgules
+    private String selectedErrorTypes; // Stocké comme String séparé par virgules (ex: "NULL_VALUE,INVALID_DATE")
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,6 +48,25 @@ public class GenerationJob {
 
     @Column(name = "file_path")
     private String filePath;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_url_id")
+    private TargetUrl targetUrl;
+
+    @Column(name = "expected_lines_treated")
+    private Integer expectedLinesTreated;
+
+    @Column(name = "expected_lines_insert")
+    private Integer expectedLinesInsert;
+
+    @Column(name = "expected_lines_update")
+    private Integer expectedLinesUpdate;
+
+    @Column(name = "expected_lines_ignored")
+    private Integer expectedLinesIgnored;
+
+    @Column(name = "expected_http_status")
+    private Integer expectedHttpStatus;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

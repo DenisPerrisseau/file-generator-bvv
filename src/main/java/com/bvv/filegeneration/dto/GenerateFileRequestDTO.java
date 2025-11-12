@@ -23,7 +23,22 @@ public class GenerateFileRequestDTO {
     @Min(value = 0, message = "Error lines cannot be negative")
     private Integer errorLines;
 
+    @Min(value = 0, message = "Duplicate lines cannot be negative")
+    @Min(value = 0, message = "Duplicate lines cannot be negative")
+    private Integer duplicateLines;
+
+    private String selectedErrorTypes; // Types d'erreurs sélectionnés séparés par virgule (ex: "NULL_VALUE,INVALID_DATE")
+
     @NotNull(message = "Output format is required")
     private OutputFormat outputFormat;
+
+    private Long targetUrlId; // ID de l'URL de destination (optionnel pour génération simple)
+
+    // Valeurs attendues pour la comparaison (optionnelles)
+    private Integer expectedLinesTreated;
+    private Integer expectedLinesInsert;
+    private Integer expectedLinesUpdate;
+    private Integer expectedLinesIgnored;
+    private Integer expectedHttpStatus;
 }
 

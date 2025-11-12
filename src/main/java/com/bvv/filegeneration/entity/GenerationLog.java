@@ -33,6 +33,21 @@ public class GenerationLog {
     @Column(name = "response_message", columnDefinition = "TEXT")
     private String responseMessage;
 
+    @Column(name = "actual_lines_treated")
+    private Integer actualLinesTreated;
+
+    @Column(name = "actual_lines_insert")
+    private Integer actualLinesInsert;
+
+    @Column(name = "actual_lines_update")
+    private Integer actualLinesUpdate;
+
+    @Column(name = "actual_lines_ignored")
+    private Integer actualLinesIgnored;
+
+    @Column(name = "response_status")
+    private String responseStatus; // PARTIAL, SUCCESS, ERROR
+
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
