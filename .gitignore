@@ -1,0 +1,67 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Maven
+target/
+.m2/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.backup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Build
+build/
+out/
+dist/
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Local development
+application-local.yml
+application-local.properties
+.env
+.env.local
+
+# Generated files
+files/
+generated/
+templates/
+
+# IDE configurations
+.classpath
+.project
+.settings/
+*.launch
+
+# OS
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Security
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+
+# Node (si frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+/.idea/

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: file-generator
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/filegeneration_db_prod
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        use_sql_comments: false
+    show-sql: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+logging:
+  level:
+    root: WARN
+    com.bvv.filegeneration: INFO
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  files:
+    templates-dir: /opt/filegeneration/templates
+    generated-dir: /opt/filegeneration/generated
+    logs-dir: /opt/filegeneration/logs
+  http:
+    timeout-seconds: 30
+    max-retries: 3
+
