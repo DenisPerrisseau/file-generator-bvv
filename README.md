@@ -62,17 +62,6 @@ Doublons: 1
 Types d'erreurs: [Date Invalide, Champ Vide]
 ```
 
-### Résultat
-```json
-{
-  "equipments": [
-    { "name": "DVIFRPNO171", "file": "B804001085", "deployDateTime": "2025-12-12T13:34:00.000Z" },
-    { "name": "DVIFRPNO241", "file": "B804001086", "deployDateTime": "2025-13-32T13:35:00.000Z" },
-    ... (8 lignes supplémentaires)
-    { "name": "DVIFRPNO171", "file": "B804001085", "deployDateTime": "2025-12-12T13:34:00.000Z" }  // Doublon
-  ]
-}
-```
 
 ## 🏗️ Architecture
 
