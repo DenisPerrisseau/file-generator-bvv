@@ -214,9 +214,6 @@ mvn test
 - **Architecture:** Consulter `ARCHITECTURE.md`
 - **API Specification:** Consulter `API_SPEC.md`
 
-## 👨‍💻 Auteur
-
-BVV Team
 
 ## 📄 Licence
 
