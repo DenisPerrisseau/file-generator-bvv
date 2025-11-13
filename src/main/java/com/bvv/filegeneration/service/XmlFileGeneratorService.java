@@ -30,6 +30,17 @@ public class XmlFileGeneratorService {
      */
     public String generateXml(int totalLines, int errorLines, List<String> errorTypes, int duplicateLines) {
         try {
+            // Validations
+            if (totalLines < 1) {
+                throw new IllegalArgumentException("Le nombre total de lignes doit être au moins 1");
+            }
+            if (errorLines < 0 || errorLines > totalLines) {
+                throw new IllegalArgumentException("Le nombre d'erreurs ne peut pas dépasser le nombre total de lignes");
+            }
+            if (duplicateLines < 0) {
+                throw new IllegalArgumentException("Le nombre de doublons ne peut pas être négatif");
+            }
+
             StringBuilder xml = new StringBuilder();
 
             // En-tête XML
@@ -57,12 +68,12 @@ public class XmlFileGeneratorService {
                 xml.append(acquittement);
             }
 
-            // Générer et ajouter les lignes avec erreurs
+            // Générer et ajouter les lignes avec erreurs (distribuer les types d'erreurs)
             for (int i = 0; i < errorLines; i++) {
-                xml.append(generateAcquittementWithErrors(errorTypes));
+                xml.append(generateAcquittementWithErrors(errorTypes, i, errorLines));
             }
 
-            // Ajouter les doublons
+            // Ajouter les doublons UNIQUEMENT parmi les lignes valides (pas les erreurs)
             if (duplicateLines > 0 && !validAcquittements.isEmpty()) {
                 for (int i = 0; i < duplicateLines; i++) {
                     int indexToDuplicate = random.nextInt(validAcquittements.size());
@@ -109,15 +120,21 @@ public class XmlFileGeneratorService {
 
     /**
      * Génère un acquittement avec erreurs spécifiques à ACQ MTCAB
+     * Distribue les erreurs de manière cohérente parmi les lignes en erreur
      */
-    private String generateAcquittementWithErrors(List<String> errorTypes) {
+    private String generateAcquittementWithErrors(List<String> errorTypes, int errorIndex, int totalErrors) {
         StringBuilder sb = new StringBuilder();
 
         String correlationId = CORRELATION_IDS[random.nextInt(CORRELATION_IDS.length)];
         String equipId = EQUIP_IDS[random.nextInt(EQUIP_IDS.length)];
         String dateInitiale = generateDateInitiale();
 
-        boolean hasError = errorTypes != null && !errorTypes.isEmpty();
+        if (errorTypes == null || errorTypes.isEmpty()) {
+            return generateValidAcquittement();
+        }
+
+        // Distribuer les types d'erreurs parmi les lignes en erreur
+        String selectedError = errorTypes.get(errorIndex % errorTypes.size());
 
         sb.append("  <AcquittementLN>\n");
 
@@ -125,7 +142,7 @@ public class XmlFileGeneratorService {
         sb.append("    <CorrelationIdACT>").append(escapeXml(correlationId)).append("</CorrelationIdACT>\n");
 
         // IdEqpt
-        if (hasError && errorTypes.contains("EMPTY_IDEQPT")) {
+        if (selectedError.equals("EMPTY_IDEQPT")) {
             sb.append("    <IdEqpt></IdEqpt>\n");
         } else {
             sb.append("    <IdEqpt>").append(escapeXml(equipId)).append("</IdEqpt>\n");
@@ -138,18 +155,18 @@ public class XmlFileGeneratorService {
         sb.append("    <HorodateGenerationSIMTCAB>").append(generateValidDateTime().substring(0, 19)).append("</HorodateGenerationSIMTCAB>\n");
 
         // HorodateReceptionEquipement
-        if (hasError && errorTypes.contains("EMPTY_RECEPTION_DATE")) {
+        if (selectedError.equals("EMPTY_RECEPTION_DATE")) {
             sb.append("    <HorodateReceptionEquipement></HorodateReceptionEquipement>\n");
-        } else if (hasError && errorTypes.contains("INVALID_RECEPTION_DATE")) {
+        } else if (selectedError.equals("INVALID_RECEPTION_DATE")) {
             sb.append("    <HorodateReceptionEquipement>2023-12-12T25:55:15</HorodateReceptionEquipement>\n");
         } else {
             sb.append("    <HorodateReceptionEquipement>").append(generateValidDateTime().substring(0, 19)).append("</HorodateReceptionEquipement>\n");
         }
 
         // NumeroFichierFluxC2
-        if (hasError && errorTypes.contains("EMPTY_NUMERO_FICHIER")) {
+        if (selectedError.equals("EMPTY_NUMERO_FICHIER")) {
             sb.append("    <NumeroFichierFluxC2></NumeroFichierFluxC2>\n");
-        } else if (hasError && errorTypes.contains("NUMERO_FICHIER_WRONG_LENGTH")) {
+        } else if (selectedError.equals("NUMERO_FICHIER_WRONG_LENGTH")) {
             // Générer un nombre qui n'a pas exactement 3 chiffres
             int wrongNumber = random.nextBoolean() ? random.nextInt(100) : 1000 + random.nextInt(1000);
             sb.append("    <NumeroFichierFluxC2>").append(wrongNumber).append("</NumeroFichierFluxC2>\n");

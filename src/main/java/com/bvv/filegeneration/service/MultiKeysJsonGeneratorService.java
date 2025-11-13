@@ -27,53 +27,67 @@ public class MultiKeysJsonGeneratorService {
      */
     public String generateMultiKeysJson(int totalLines, int errorLines, List<String> errorTypes, int duplicateLines) {
         try {
+            // Validations
+            if (totalLines < 1) {
+                throw new IllegalArgumentException("Le nombre total de lignes doit être au moins 1");
+            }
+            if (errorLines < 0 || errorLines > totalLines) {
+                throw new IllegalArgumentException("Le nombre d'erreurs ne peut pas dépasser le nombre total de lignes");
+            }
+            if (duplicateLines < 0) {
+                throw new IllegalArgumentException("Le nombre de doublons ne peut pas être négatif");
+            }
+
             Map<String, Object> root = new LinkedHashMap<>();
+            List<Map<String, Object>> validLines = new ArrayList<>();
 
             // Déterminer le nombre de groupes et lignes par groupe
             int numberOfGroups = Math.max(2, totalLines / 3);
             int linesPerGroup = totalLines / numberOfGroups;
+            int remainingLines = totalLines % numberOfGroups;
 
-            List<Map<String, Object>> validLines = new ArrayList<>();
+            int totalLinesGenerated = 0;
+            int errorLinesGenerated = 0;
+            int groupIndex = 0;
 
-            // Générer les lignes valides
-            for (int g = 0; g < numberOfGroups; g++) {
+            // Générer les groupes avec les lignes valides et erreurs
+            for (int g = 0; g < numberOfGroups && totalLinesGenerated < totalLines; g++) {
                 String groupName = GROUP_NAMES[g % GROUP_NAMES.length];
                 List<Map<String, Object>> groupLines = new ArrayList<>();
 
-                for (int i = 0; i < linesPerGroup; i++) {
-                    Map<String, Object> line = generateValidParameterLine();
-                    groupLines.add(line);
-                    validLines.add(line);
+                // Calculer le nombre de lignes pour ce groupe
+                int linesToAdd = linesPerGroup + (g < remainingLines ? 1 : 0);
+
+                for (int i = 0; i < linesToAdd && totalLinesGenerated < totalLines; i++) {
+                    if (errorLinesGenerated < errorLines) {
+                        // Ajouter une ligne avec erreur
+                        Map<String, Object> line = generateParameterLineWithErrors(errorTypes, errorLinesGenerated, errorLines);
+                        groupLines.add(line);
+                        errorLinesGenerated++;
+                    } else {
+                        // Ajouter une ligne valide
+                        Map<String, Object> line = generateValidParameterLine();
+                        groupLines.add(line);
+                        validLines.add(line);
+                    }
+                    totalLinesGenerated++;
                 }
 
                 root.put(groupName, groupLines);
+                groupIndex++;
             }
 
-            // Ajouter les lignes avec erreurs
-            int errorCount = 0;
-            for (String groupKey : root.keySet()) {
-                if (errorCount >= errorLines) break;
-
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> groupList = (List<Map<String, Object>>) root.get(groupKey);
-
-                if (!groupList.isEmpty()) {
-                    int errorIndex = random.nextInt(groupList.size());
-                    groupList.set(errorIndex, generateParameterLineWithErrors(errorTypes));
-                    errorCount++;
-                }
-            }
-
-            // Ajouter les doublons
+            // Ajouter les doublons UNIQUEMENT parmi les lignes valides (pas les erreurs)
             if (duplicateLines > 0 && !validLines.isEmpty()) {
-                String duplicateGroupName = GROUP_NAMES[random.nextInt(numberOfGroups) % GROUP_NAMES.length];
+                // Ajouter les doublons au dernier groupe
+                String lastGroupName = GROUP_NAMES[(numberOfGroups - 1) % GROUP_NAMES.length];
                 @SuppressWarnings("unchecked")
-                List<Map<String, Object>> duplicateGroup = (List<Map<String, Object>>) root.get(duplicateGroupName);
+                List<Map<String, Object>> lastGroup = (List<Map<String, Object>>) root.get(lastGroupName);
 
                 for (int i = 0; i < duplicateLines; i++) {
                     int indexToDuplicate = random.nextInt(validLines.size());
                     Map<String, Object> duplicate = new LinkedHashMap<>(validLines.get(indexToDuplicate));
-                    duplicateGroup.add(duplicate);
+                    lastGroup.add(duplicate);
                 }
             }
 
@@ -101,35 +115,41 @@ public class MultiKeysJsonGeneratorService {
 
     /**
      * Génère une ligne de paramètre avec erreurs spécifiques à ACQ PE
+     * Distribue les erreurs de manière cohérente parmi les lignes en erreur
      */
-    private Map<String, Object> generateParameterLineWithErrors(List<String> errorTypes) {
+    private Map<String, Object> generateParameterLineWithErrors(List<String> errorTypes, int errorIndex, int totalErrors) {
         Map<String, Object> line = new LinkedHashMap<>();
 
-        boolean hasError = errorTypes != null && !errorTypes.isEmpty();
+        if (errorTypes == null || errorTypes.isEmpty()) {
+            return generateValidParameterLine();
+        }
+
+        // Distribuer les types d'erreurs parmi les lignes en erreur
+        String selectedError = errorTypes.get(errorIndex % errorTypes.size());
 
         // deployDateTime
         line.put("deployDateTime", generateValidDateTime());
 
         // fetchDateTime
-        if (hasError && errorTypes.contains("EMPTY_FETCH_DATE")) {
+        if (selectedError.equals("EMPTY_FETCH_DATE")) {
             line.put("fetchDateTime", "");
-        } else if (hasError && errorTypes.contains("INVALID_FETCH_DATE")) {
+        } else if (selectedError.equals("INVALID_FETCH_DATE")) {
             line.put("fetchDateTime", "2025-13-32T25:61:00.074Z");
         } else {
             line.put("fetchDateTime", generateValidDateTime());
         }
 
         // file
-        if (hasError && errorTypes.contains("EMPTY_FILE_PE")) {
+        if (selectedError.equals("EMPTY_FILE_PE")) {
             line.put("file", "");
         } else {
             line.put("file", FILE_NAMES[random.nextInt(FILE_NAMES.length)]);
         }
 
-        // version
-        if (hasError && errorTypes.contains("EMPTY_VERSION")) {
+        // version (3 chiffres)
+        if (selectedError.equals("EMPTY_VERSION")) {
             line.put("version", "");
-        } else if (hasError && errorTypes.contains("VERSION_WRONG_LENGTH")) {
+        } else if (selectedError.equals("VERSION_WRONG_LENGTH")) {
             // Générer une version qui n'a pas exactement 3 chiffres
             int wrongLength = random.nextBoolean() ? random.nextInt(10) : 1000 + random.nextInt(1000);
             line.put("version", String.valueOf(wrongLength));

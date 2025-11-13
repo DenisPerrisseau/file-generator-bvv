@@ -33,23 +33,35 @@ public class JsonFileGeneratorService {
      */
     public String generateJson(int totalLines, int errorLines, List<String> errorTypes, int duplicateLines) {
         try {
-            // Générer les lignes valides
+            // Validations
+            if (totalLines < 1) {
+                throw new IllegalArgumentException("Le nombre total de lignes doit être au moins 1");
+            }
+            if (errorLines < 0 || errorLines > totalLines) {
+                throw new IllegalArgumentException("Le nombre d'erreurs ne peut pas dépasser le nombre total de lignes");
+            }
+            if (duplicateLines < 0) {
+                throw new IllegalArgumentException("Le nombre de doublons ne peut pas être négatif");
+            }
+
+            // Générer les lignes valides (sans erreur)
             List<Map<String, Object>> equipments = new ArrayList<>();
             List<Map<String, Object>> validLines = new ArrayList<>();
+            int validLinesCount = totalLines - errorLines;
 
-            for (int i = 0; i < (totalLines - errorLines); i++) {
+            for (int i = 0; i < validLinesCount; i++) {
                 validLines.add(generateValidEquipment());
             }
 
             // Ajouter les lignes valides
             equipments.addAll(validLines);
 
-            // Générer et ajouter les lignes avec erreurs
+            // Générer et ajouter les lignes avec erreurs (en distribuant les types d'erreurs)
             for (int i = 0; i < errorLines; i++) {
-                equipments.add(generateEquipmentWithErrors(errorTypes));
+                equipments.add(generateEquipmentWithErrors(errorTypes, i, errorLines));
             }
 
-            // Ajouter les doublons (lignes duplicatas parmi les lignes valides)
+            // Ajouter les doublons UNIQUEMENT parmi les lignes valides (pas les erreurs)
             if (duplicateLines > 0 && !validLines.isEmpty()) {
                 for (int i = 0; i < duplicateLines; i++) {
                     int indexToDuplicate = random.nextInt(validLines.size());
@@ -83,34 +95,38 @@ public class JsonFileGeneratorService {
 
     /**
      * Génère un équipement avec erreurs spécifiques à ACQ MTBORNE
+     * Distribue les erreurs de manière cohérente parmi les lignes en erreur
      */
-    private Map<String, Object> generateEquipmentWithErrors(List<String> errorTypes) {
+    private Map<String, Object> generateEquipmentWithErrors(List<String> errorTypes, int errorIndex, int totalErrors) {
         Map<String, Object> equipment = new LinkedHashMap<>();
 
         if (errorTypes == null || errorTypes.isEmpty()) {
             return generateValidEquipment();
         }
 
+        // Distribuer les types d'erreurs parmi les lignes en erreur
+        String selectedError = errorTypes.get(errorIndex % errorTypes.size());
+
         // name
-        if (errorTypes.contains("EMPTY_NAME")) {
+        if (selectedError.equals("EMPTY_NAME")) {
             equipment.put("name", "");
         } else {
             equipment.put("name", DEVICE_IDS[random.nextInt(DEVICE_IDS.length)]);
         }
 
         // file
-        if (errorTypes.contains("EMPTY_FILE")) {
+        if (selectedError.equals("EMPTY_FILE")) {
             equipment.put("file", "");
-        } else if (errorTypes.contains("FILE_TOO_SHORT")) {
+        } else if (selectedError.equals("FILE_TOO_SHORT")) {
             equipment.put("file", "B8");  // Seulement 2 caractères au lieu de 3 minimum
         } else {
             equipment.put("file", FILE_IDS[random.nextInt(FILE_IDS.length)]);
         }
 
         // deployDateTime
-        if (errorTypes.contains("EMPTY_DEPLOY_DATE")) {
+        if (selectedError.equals("EMPTY_DEPLOY_DATE")) {
             equipment.put("deployDateTime", "");
-        } else if (errorTypes.contains("INVALID_DEPLOY_DATE")) {
+        } else if (selectedError.equals("INVALID_DEPLOY_DATE")) {
             equipment.put("deployDateTime", generateInvalidDateTime());
         } else {
             equipment.put("deployDateTime", generateValidDateTime());

@@ -48,8 +48,35 @@ public class GeneratorController {
             java.util.List<String> errorTypes = (java.util.List<String>) request.get("errorTypes");
             String outputType = (String) request.getOrDefault("outputType", "ACQ_MTBORNE");
 
-            log.info("Génération: {} lignes, {} erreurs, {} doublons, type: {}",
-                    totalLines, errorLines, duplicateLines, outputType);
+            // Validations cohérentes
+            if (totalLines < 1) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre total de lignes doit être au moins 1\"}");
+            }
+            if (errorLines < 0) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre d'erreurs ne peut pas être négatif\"}");
+            }
+            if (errorLines > totalLines) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre d'erreurs ne peut pas dépasser le nombre total de lignes (" + totalLines + ")\"}");
+            }
+            if (duplicateLines < 0) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre de doublons ne peut pas être négatif\"}");
+            }
+
+            int validLines = totalLines - errorLines;
+            if (duplicateLines > 0 && validLines == 0) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Impossible d'ajouter des doublons sans lignes valides. Réduisez le nombre d'erreurs.\"}");
+            }
+
+            // Vérifier que le nombre d'erreurs sélectionnées ne dépasse pas le nombre de lignes en erreur
+            if (errorTypes != null && !errorTypes.isEmpty() && errorLines > 0) {
+                if (errorTypes.size() > errorLines) {
+                    return ResponseEntity.badRequest().body("{\"error\": \"Nombre de types d'erreurs sélectionnés (" + errorTypes.size() + ") dépasse le nombre de lignes en erreur (" + errorLines + ")\"}");
+                }
+            }
+
+            log.info("Génération: {} lignes, {} erreurs, {} doublons, {} types d'erreurs, type: {}",
+                    totalLines, errorLines, duplicateLines,
+                    errorTypes != null ? errorTypes.size() : 0, outputType);
 
             String content;
             MediaType mediaType;
@@ -74,6 +101,9 @@ public class GeneratorController {
                     .contentType(mediaType)
                     .body(content);
 
+        } catch (IllegalArgumentException e) {
+            log.warn("Validation échouée: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
         } catch (Exception e) {
             log.error("Erreur génération", e);
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -91,6 +121,32 @@ public class GeneratorController {
             int duplicateLines = ((Number) request.get("duplicateLines")).intValue();
             java.util.List<String> errorTypes = (java.util.List<String>) request.get("errorTypes");
             String outputType = (String) request.getOrDefault("outputType", "ACQ_MTBORNE");
+
+            // Validations cohérentes
+            if (totalLines < 1) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre total de lignes doit être au moins 1\"}");
+            }
+            if (errorLines < 0) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre d'erreurs ne peut pas être négatif\"}");
+            }
+            if (errorLines > totalLines) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre d'erreurs ne peut pas dépasser le nombre total de lignes (" + totalLines + ")\"}");
+            }
+            if (duplicateLines < 0) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Le nombre de doublons ne peut pas être négatif\"}");
+            }
+
+            int validLines = totalLines - errorLines;
+            if (duplicateLines > 0 && validLines == 0) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Impossible d'ajouter des doublons sans lignes valides. Réduisez le nombre d'erreurs.\"}");
+            }
+
+            // Vérifier que le nombre d'erreurs sélectionnées ne dépasse pas le nombre de lignes en erreur
+            if (errorTypes != null && !errorTypes.isEmpty() && errorLines > 0) {
+                if (errorTypes.size() > errorLines) {
+                    return ResponseEntity.badRequest().body("{\"error\": \"Nombre de types d'erreurs sélectionnés (" + errorTypes.size() + ") dépasse le nombre de lignes en erreur (" + errorLines + ")\"}");
+                }
+            }
 
             String content;
             String filename;
@@ -120,6 +176,9 @@ public class GeneratorController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + filename)
                     .body(content);
 
+        } catch (IllegalArgumentException e) {
+            log.warn("Validation échouée: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
         } catch (Exception e) {
             log.error("Erreur téléchargement", e);
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");

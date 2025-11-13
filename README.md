@@ -152,46 +152,130 @@ logging:
 
 **Résultat attendu**: 15 lignes valides + 5 avec erreurs + 2 doublons = 22 lignes
 
-### Test 3: Tous les Types d'Erreurs
-1. Total: 30
-2. Erreurs: 10
-3. Doublons: 5
-4. Cocher tous les types d'erreurs
-5. Cliquer "Prévisualiser"
+---
 
-**Résultat attendu**: Mix de différents types d'erreurs
+## 📚 Documentation Complète
+
+### 🚀 Démarrage Rapide
+- **[QUICK_START_API.md](./QUICK_START_API.md)** - Test en 2 minutes
+- **[INDEX_DOCUMENTATION.md](./INDEX_DOCUMENTATION.md)** - Index de toute la documentation
+
+### 📤 Envoi API
+- **[ENVOI_API.md](./ENVOI_API.md)** - Documentation complète envoi API
+- **[ENVOI_API_RESUME.md](./ENVOI_API_RESUME.md)** - Résumé visuel
+
+### 🔧 Technique
+- **[RECAPITULATIF_MODIFICATIONS.md](./RECAPITULATIF_MODIFICATIONS.md)** - Toutes les modifications
+- **[GUIDE_MIGRATION.md](./GUIDE_MIGRATION.md)** - Guide de migration API
+- **[CORRECTIONS_COHERENCE.md](./CORRECTIONS_COHERENCE.md)** - Détails des corrections
+
+### 🧪 Tests
+- **[TESTS_VALIDATION.md](./TESTS_VALIDATION.md)** - Suite de tests complète
+- **[GUIDE_COHERENCE.md](./GUIDE_COHERENCE.md)** - Guide des validations
+
+---
 
 ## 🐛 Dépannage
 
-### "Maven command not found"
-Installer Maven ou l'ajouter au PATH système.
+### Application
 
-### Port 8080 déjà utilisé
-Changer le port dans `application.yml`:
-```yaml
-server:
-  port: 9090
-```
+| Problème | Solution |
+|----------|----------|
+| "Maven command not found" | Installer Maven ou utiliser le JAR |
+| Port 8080 déjà utilisé | Changer dans `application.yml`: `server.port: 9090` |
+| Erreur compilation | `mvn clean install` |
 
-### Erreur lors de la compilation
-```bash
-# Nettoyer et recompiler
-mvn clean install
-```
+### Envoi API
+
+| Problème | Solution |
+|----------|----------|
+| Section envoi pas visible | Sélectionner ACQ_MTBORNE ou ACQ_PE |
+| "URL invalide" | Vérifier le format: https://example.com |
+| "Failed to fetch" | Vérifier que l'API est accessible |
+| "401 Unauthorized" | Vérifier le Bearer Token |
+
+**Plus de détails:** [ENVOI_API.md § Dépannage](./ENVOI_API.md#dépannage)
+
+---
 
 ## 📝 Notes Techniques
 
-- **Framework**: Spring Boot 3.3.0
+### Stack Technique
+- **Backend**: Spring Boot 3.3.0
 - **Language**: Java 21
 - **Template Engine**: Thymeleaf
 - **Frontend**: Bootstrap 5 + Vanilla JavaScript
 - **JSON Processing**: Jackson
+- **Build**: Maven 3.8+
 
-## 📞 Support
+### Validations Implémentées
+- ✅ Total >= 1
+- ✅ Erreurs <= Total
+- ✅ Doublons >= 0
+- ✅ Types d'erreurs <= Lignes en erreur
+- ✅ Checkboxes limitées dynamiquement
+- ✅ Distribution circulaire des erreurs
 
-Pour toute question ou problème, consultez le fichier `NOUVEAU_SYSTEME.md`.
+### Sécurité
+- 🔒 Bearer Token supporté
+- 🔒 Token masqué par défaut
+- 🔒 Validation côté client + serveur
+- 🔒 HTTPS recommandé pour production
 
 ---
 
-**Générateur de Fichiers JSON v1.0.0** ✨
+## 🎯 Changelog
+
+### v1.1 (2025-11-13)
+- ✨ **NOUVEAU:** Envoi API automatique avec Bearer Token
+- ✨ Support ACQ MTBORNE et ACQ PE pour envoi API
+- 🐛 Correction du bug de dégrissage des checkboxes
+- ✅ Validations cohérentes renforcées
+- 📚 Documentation complète ajoutée
+
+### v1.0 (Initial)
+- ✅ Génération de fichiers JSON
+- ✅ Gestion des erreurs et doublons
+- ✅ Interface web Bootstrap
+
+---
+
+## 📞 Support
+
+### Pour les Utilisateurs
+- 📖 Consultez [QUICK_START_API.md](./QUICK_START_API.md)
+- 📋 Voir la [FAQ dans ENVOI_API.md](./ENVOI_API.md#faq)
+
+### Pour les Développeurs
+- 🔧 Consultez [GUIDE_MIGRATION.md](./GUIDE_MIGRATION.md)
+- 📊 Tests dans [TESTS_VALIDATION.md](./TESTS_VALIDATION.md)
+
+---
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues! Veuillez:
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/amazing-feature`)
+3. Commit les changements (`git commit -m 'Add amazing feature'`)
+4. Push vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrir une Pull Request
+
+---
+
+## 📄 License
+
+Ce projet est sous license MIT - voir le fichier LICENSE pour plus de détails.
+
+---
+
+<div align="center">
+
+**Générateur de Fichiers avec Envoi API v1.1** 🚀
+
+Fait avec ❤️ pour faciliter les tests d'intégration
+
+[Documentation](./INDEX_DOCUMENTATION.md) • [Quick Start](./QUICK_START_API.md) • [Tests](./TESTS_VALIDATION.md)
+
+</div>
 
