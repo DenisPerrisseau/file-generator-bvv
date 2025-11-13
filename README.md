@@ -271,10 +271,6 @@ Ce projet est sous license MIT - voir le fichier LICENSE pour plus de détails.
 
 <div align="center">
 
-**Générateur de Fichiers avec Envoi API v1.1** 🚀
-
-Fait avec ❤️ pour faciliter les tests d'intégration
-
 [Documentation](./INDEX_DOCUMENTATION.md) • [Quick Start](./QUICK_START_API.md) • [Tests](./TESTS_VALIDATION.md)
 
 </div>
